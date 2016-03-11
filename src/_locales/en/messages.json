@@ -1,0 +1,10 @@
+{
+  "extName" : {
+    "message" : "Aliexpress endless page",
+    "description" : "Extension name"
+  },
+  "extDescription" : {
+    "message" : "Aliexpress endless pagination...",
+    "description" : "Extension description"
+  }
+}
