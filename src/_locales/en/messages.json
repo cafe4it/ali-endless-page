@@ -6,5 +6,9 @@
   "extDescription" : {
     "message" : "Aliexpress endless pagination...",
     "description" : "Extension description"
+  },
+  "button_LoadMore" : {
+    "message" : "Load more",
+    "description" : "Extension description"
   }
 }
