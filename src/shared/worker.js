@@ -1,6 +1,6 @@
 onmessage = function(e){
     var nextPage = e.data;
-    console.info(nextPage);
+    //console.info(nextPage);
     var request = new XMLHttpRequest();
     request.onreadystatechange = function(){
         if(request.readyState === 4 && request.status === 200){

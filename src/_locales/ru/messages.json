@@ -1,0 +1,27 @@
+{
+  "extName" : {
+    "message" : "AliExpress бесконечная страница",
+    "description" : "Extension name"
+  },
+  "extDescription" : {
+    "message" : "AliExpress - автоматическая загрузка веб-страницы пронумерованы .",
+    "description" : "Extension description"
+  },
+  "button_LoadMore" : {
+    "message" : "смотреть еще",
+    "description" : "Extension description"
+  },
+  "loadingBar" : {
+    "message" : "погрузка...",
+    "description" : "Extension description"
+  },
+  "popup_title": {
+    "message": "установить"
+  },
+  "label_auto": {
+    "message": "авто"
+  },
+  "label_manual": {
+    "message": "ручная работа"
+  }
+}

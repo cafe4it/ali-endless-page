@@ -1,14 +1,27 @@
 {
-  "extName" : {
-    "message" : "Aliexpress endless page",
-    "description" : "Extension name"
+  "extName": {
+    "message": "AliExpress endless page",
+    "description": "Extension name"
   },
-  "extDescription" : {
-    "message" : "Aliexpress endless pagination...",
-    "description" : "Extension description"
+  "extDescription": {
+    "message": "AliExpress - auto loading paginated web pages.",
+    "description": "Extension description"
   },
-  "button_LoadMore" : {
-    "message" : "Load more",
-    "description" : "Extension description"
+  "button_LoadMore": {
+    "message": "View more",
+    "description": "Extension description"
+  },
+  "loadingBar": {
+    "message": "Loading...",
+    "description": "Extension description"
+  },
+  "popup_title": {
+    "message": "Setup"
+  },
+  "label_auto": {
+    "message": "Auto"
+  },
+  "label_manual": {
+    "message": "Manual"
   }
 }

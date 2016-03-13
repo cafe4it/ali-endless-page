@@ -1,6 +1,49 @@
-#Load-More-Container{
+#Load-More-Container {
     text-align: center !important;
     vertical-align: middle !important;
     align-content: center !important;
     margin: 10px 0px;
+}
+
+#btnLoadMore {
+    background-color: #999;
+    width: 350px;
+}
+
+img#loadingBar {
+    display: none;
+    width: 50px;
+    height: 50px;
+    max-width: 50px;
+    max-height: 50px;
+}
+
+/*#buttonLoadMore .isNotLoading{
+    display: inline !important;
+}*/
+
+#btnLoadMore.isLoading {
+    display: none !important;
+}
+
+img#loadingBar.isLoading {
+    display: inline-block;
+}
+
+#btnLoadMore.notShow {
+    display: none !important;
+}
+
+.ui-fixed-panel {
+    z-index: 99;
+}
+
+.ui-fixed-panel-unit > a {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    background: url('http://i.alicdn.com/ae-search-ui/node_modules/@alife/beta-fixedpanel/src/img/fixed-panel-elements.e4854f23.png') no-repeat;
 }
