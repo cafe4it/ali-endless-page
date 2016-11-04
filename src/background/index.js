@@ -4,6 +4,18 @@ import chromeStorage from 'chrome-storage-wrapper';
 const _AnalyticsCode = 'UA-74453743-3';
 let service, tracker;
 
+const PROMOTION_LINKS = [
+    'http://s.click.aliexpress.com/e/I2biMfM3b', // Store:Junsun Official Store
+    'http://s.click.aliexpress.com/e/I6M7m6Eq3', // Store:Teclast Official Store
+    'http://s.click.aliexpress.com/e/YfaiMF6ei', // Store:BESDER Store
+    'http://s.click.aliexpress.com/e/NVZNRJeEE', //
+    'http://s.click.aliexpress.com/e/n2rRbyfEU', // Store:CAR TELO
+    'http://s.click.aliexpress.com/e/YvB6QrjE2', // Store:Ever Pretty official store
+    'http://s.click.aliexpress.com/e/auvZVNVzZ', // Store:Toyouth
+    'http://s.click.aliexpress.com/e/qnYBAY7QB', // Store:SINOBI TIMER
+    'http://s.click.aliexpress.com/e/6I6iIqnYN', // Store:Veri Gude Official Store
+]
+
 var importScript = (function (oHead) {
     //window.analytics = analytics;
     function loadError(oError) {
@@ -61,6 +73,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         }
                     },function(response){
                         sendResponse(response);
+                        myWorker.terminate()
                     })
                 }
             }
@@ -73,6 +86,39 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 tracker.sendEvent('App', 'Surf', msg.data || '');
             }
             break;
+        case 'SEND_PROMOTION':
+            chrome.storage.local.get('SEND_PROMOTION', function (result) {
+                try{
+                    let is_send = false
+                    const _now = Date.now()
+                    if(!result['SEND_PROMOTION']){
+                        is_send = true
+                    }else{
+                        const _ago = new Date(result['SEND_PROMOTION'])
+                        const over_days = daydiff(_ago, _now)
+                        if(over_days >= 3){
+                            is_send = true
+                        }
+                    }
+                    if(is_send){
+                        var promotion_link = PROMOTION_LINKS[Math.floor(Math.random() * PROMOTION_LINKS.length)]
+                        chrome.tabs.create({
+                            url: promotion_link
+                        }, function () {
+                            chrome.storage.local.set({['SEND_PROMOTION']: _now})
+                            tracker.sendEvent('Promotion', 'Tab', promotion_link)
+                        })
+                    }
+                }catch(ex){
+                    console.log(ex)
+                }
+
+            })
+            break;
     }
     return true;
 })
+
+function daydiff(first, second) {
+    return Math.round((second-first)/(1000*60*60*24));
+}
