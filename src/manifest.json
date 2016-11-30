@@ -29,7 +29,8 @@
     "https://www.google-analytics.com/*",
     "background",
     "tabs",
-    "storage"
+    "storage",
+    "cookies"
   ],
   "web_accessible_resources": [
     "shared/worker_proxy.html",

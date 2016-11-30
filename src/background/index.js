@@ -51,6 +51,13 @@ chromeStorage.get(['cfgLoadMore'])
         }
     });
 
+chrome.cookies.onChanged.addListener(function(changeInfo){
+    const {removed, cookie, cause} = changeInfo
+    if(cookie.name === 'aep_usuc_f' && cookie.domain === '.aliexpress.com' && cookie.value.indexOf('af_tid') !== -1){
+        console.log(cookie.value, cause)
+    }
+})
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!msg.action) return;
     var tabId = sender.tab.id;
@@ -122,3 +129,4 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 function daydiff(first, second) {
     return Math.round((second-first)/(1000*60*60*24));
 }
+
