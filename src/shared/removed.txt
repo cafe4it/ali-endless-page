@@ -1,0 +1,54 @@
+/*$('.site-logo > a').click(function (e) {
+ var cb = generate_callback($(this))
+ e.preventDefault()
+ chrome.runtime.sendMessage({
+ action: 'SEND_PROMOTION'
+ })
+ setTimeout(cb, 500)
+ })*/
+
+/*
+ function generate_callback(a) {
+ return function() {
+ window.location = a.attr("href");
+ }
+ }*/
+
+ case 'SEND_PROMOTION':
+             chrome.storage.local.get('SEND_PROMOTION', function (result) {
+                 try{
+                     let is_send = false
+                     const _now = Date.now()
+                     if(!result['SEND_PROMOTION']){
+                         is_send = true
+                     }else{
+                         const _ago = new Date(result['SEND_PROMOTION'])
+                         const over_days = daydiff(_ago, _now)
+                         if(over_days >= 3){
+                             is_send = true
+                         }
+                     }
+                     if(is_send){
+                         var promotion_link = PROMOTION_LINKS[Math.floor(Math.random() * PROMOTION_LINKS.length)]
+                         chrome.tabs.create({
+                             url: promotion_link
+                         }, function () {
+                             chrome.storage.local.set({['SEND_PROMOTION']: _now})
+                             tracker.sendEvent('Promotion', 'Tab', promotion_link)
+                         })
+                     }
+                 }catch(ex){
+                     console.log(ex)
+                 }
+
+             })
+             break;
+function daydiff(first, second) {
+    return Math.round((second-first)/(1000*60*60*24));
+}
+chrome.cookies.onChanged.addListener(function(changeInfo){
+    const {removed, cookie, cause} = changeInfo
+    if(cookie.name === 'aep_usuc_f' && cookie.domain === '.aliexpress.com' && cookie.value.indexOf('af_tid') !== -1){
+        console.log(cookie.value, cause)
+    }
+})

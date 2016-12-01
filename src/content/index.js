@@ -152,18 +152,3 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             break;
     }
 })
-
-/*$('.site-logo > a').click(function (e) {
-    var cb = generate_callback($(this))
-    e.preventDefault()
-    chrome.runtime.sendMessage({
-        action: 'SEND_PROMOTION'
-    })
-    setTimeout(cb, 500)
-})*/
-
-function generate_callback(a) {
-    return function() {
-        window.location = a.attr("href");
-    }
-}

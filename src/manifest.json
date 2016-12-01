@@ -30,7 +30,8 @@
     "background",
     "tabs",
     "storage",
-    "cookies"
+    "cookies",
+    "webRequest"
   ],
   "web_accessible_resources": [
     "shared/worker_proxy.html",
